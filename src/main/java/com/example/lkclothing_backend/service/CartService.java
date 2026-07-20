@@ -76,4 +76,39 @@ public class CartService {
         // 6. Save and return the updated cart
         return cartRepository.save(cart);
     }
+
+    // UPDATE ITEM QUANTITY
+    public Cart updateItemQuantity(String email, Long cartItemId, Integer newQuantity) {
+        Cart cart = getCartForUser(email);
+
+        // Find the specific item in the cart
+        CartItem itemToUpdate = cart.getItems().stream()
+                .filter(item -> item.getId().equals(cartItemId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Item not found in cart"));
+
+        // If they set quantity to 0 or less, remove it instead
+        if (newQuantity <= 0) {
+            return removeItemFromCart(email, cartItemId);
+        }
+
+        // Check if we have enough stock for the new quantity
+        if (itemToUpdate.getProductVariant().getStockQuantity() < newQuantity) {
+            throw new RuntimeException("Not enough stock available! Only " + itemToUpdate.getProductVariant().getStockQuantity() + " left.");
+        }
+
+        itemToUpdate.setQuantity(newQuantity);
+        return cartRepository.save(cart);
+    }
+
+    // REMOVE ITEM FROM CART
+    public Cart removeItemFromCart(String email, Long cartItemId) {
+        Cart cart = getCartForUser(email);
+
+        // Remove the item that matches the given ID.
+        // Because of cascade/orphanRemoval in our entity, Spring automatically deletes it from the database table too!
+        cart.getItems().removeIf(item -> item.getId().equals(cartItemId));
+
+        return cartRepository.save(cart);
+    }
 }
