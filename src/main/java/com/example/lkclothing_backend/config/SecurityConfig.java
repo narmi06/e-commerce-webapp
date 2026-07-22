@@ -32,7 +32,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/products/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/products/**", "/api/payments/notify").permitAll()
                         .anyRequest().authenticated()
                 )
                 // Tell Spring NOT to create sessions (we are stateless because we use JWTs)
